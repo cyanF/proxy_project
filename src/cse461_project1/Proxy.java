@@ -32,7 +32,6 @@ public class Proxy {
 				 
 				while (((readLine = br.readLine()) != null)) {
 				System.out.println(readLine);
-				//fuck this
 				}
 				
 				
@@ -40,7 +39,7 @@ public class Proxy {
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			int a = 5;
 		} 
 		
 		
