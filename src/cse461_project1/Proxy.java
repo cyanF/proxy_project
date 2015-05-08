@@ -18,30 +18,15 @@ public class Proxy {
 //	
 //		int port = Integer.valueOf(args[0]).intValue(); 
 //		
-		int port = 2000;
+		int port = 2008;
 		ServerSocket serverSocket;
 		try {
 			serverSocket = new ServerSocket(port);
 			//serverSocket.listen();
 			while (true) {
 				Socket s = serverSocket.accept();
-				InputStream in = s.getInputStream();
-
-				String readLine;
-				BufferedReader br = new BufferedReader(new InputStreamReader(in));
-				 
-				while (((readLine = br.readLine()) != null)) {
-				System.out.println(readLine);
-
-				//fuck this
-				//i commit suicide
-
-				}
-				
-				
 				RequestProcessor processor = new RequestProcessor(s);
 				processor.start();
-				s.close();
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -56,11 +41,64 @@ public class Proxy {
 			this.s = s;
 		}
 		
-		public void run(){
-			if(true){ // connect
+		public void run(){	
+			InputStream in;
+			try {
+				in = s.getInputStream();
+				BufferedReader br = new BufferedReader(new InputStreamReader(in));
+				int lineCount = 0;
+				int port = 80; // default
+				String request = "";
+				String host = "";
+				String line = "";
 				
-			}else{ // else
+				while(!(line = br.readLine()).equals("")){
+					lineCount++;
+					System.out.println(line);
+					if(lineCount == 1) {
+						System.out.println(">>> " + line);
+						request = line.split(" ")[0];
+						String url = line.split(" ")[1];
+						if(url.toLowerCase().startsWith("https//")){
+							port = 443;
+						}
+					}
+					
+					String lineWithoutSpace = line.replace(" ", "").toLowerCase();
+					if(lineWithoutSpace.startsWith("host:")){ // host line
+						String[] parts = lineWithoutSpace.substring(5).split(":");
+						if(parts.length > 1) {
+							port = Integer.valueOf(parts[1]).intValue();
+						}
+						host = parts[0];
+					}
+				}
+				System.out.println();
+				System.out.println("host: " + host + " port: " + port + " request type: " + request);
 				
+				if(request.equals("CONNECT")){ // connect
+					
+				}else{ // else
+					
+				}
+				
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+			
+			
+			
+			
+			
+			
+			// close the socket!
+			try {
+				s.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 	}
