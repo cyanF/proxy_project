@@ -9,6 +9,10 @@ import java.net.Socket;
 
 public class Proxy {
 
+	class RequestProcessor extends Thread {
+		
+	}
+	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 //		if (args.length != 1) {
@@ -32,11 +36,10 @@ public class Proxy {
 				 
 				while (((readLine = br.readLine()) != null)) {
 				System.out.println(readLine);
-<<<<<<< HEAD
+
 				//fuck this
 				//i commit suicide
-=======
->>>>>>> origin/master
+
 				}
 				
 				
