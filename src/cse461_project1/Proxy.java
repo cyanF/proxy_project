@@ -29,6 +29,7 @@ public class Proxy {
 			//serverSocket.listen();
 			while (true) {
 				Socket s = serverSocket.accept();
+<<<<<<< HEAD
 				InputStream in = s.getInputStream();
 
 				String readLine;
@@ -43,14 +44,31 @@ public class Proxy {
 				}
 				
 				
+=======
+				RequestProcessor processor = new RequestProcessor(s);
+				processor.start();
+>>>>>>> origin/master
 				s.close();
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			int a = 5;
+			e.printStackTrace();
 		} 
-		
-		
 	}
-
+	
+	static class RequestProcessor extends Thread{
+		Socket s;
+		
+		public RequestProcessor(Socket s){
+			this.s = s;
+		}
+		
+		public void run(){
+			if(true){ // connect
+				
+			}else{ // else
+				
+			}
+		}
+	}
 }
