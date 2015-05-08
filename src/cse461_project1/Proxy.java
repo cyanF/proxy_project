@@ -25,29 +25,29 @@ public class Proxy {
 			//serverSocket.listen();
 			while (true) {
 				Socket s = serverSocket.accept();
-				InputStream in = s.getInputStream();
-
-				String readLine;
-				BufferedReader br = new BufferedReader(new InputStreamReader(in));
-				 
-				while (((readLine = br.readLine()) != null)) {
-				System.out.println(readLine);
-<<<<<<< HEAD
-				//fuck this
-				//i commit suicide
-=======
->>>>>>> origin/master
-				}
-				
-				
+				RequestProcessor processor = new RequestProcessor(s);
+				processor.start();
 				s.close();
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			int a = 5;
+			e.printStackTrace();
 		} 
-		
-		
 	}
-
+	
+	static class RequestProcessor extends Thread{
+		Socket s;
+		
+		public RequestProcessor(Socket s){
+			this.s = s;
+		}
+		
+		public void run(){
+			if(true){ // connect
+				
+			}else{ // else
+				
+			}
+		}
+	}
 }
