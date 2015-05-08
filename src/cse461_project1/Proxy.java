@@ -8,10 +8,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Proxy {
-
-	class RequestProcessor extends Thread {
-		
-	}
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -29,7 +25,6 @@ public class Proxy {
 			//serverSocket.listen();
 			while (true) {
 				Socket s = serverSocket.accept();
-<<<<<<< HEAD
 				InputStream in = s.getInputStream();
 
 				String readLine;
@@ -44,10 +39,8 @@ public class Proxy {
 				}
 				
 				
-=======
 				RequestProcessor processor = new RequestProcessor(s);
 				processor.start();
->>>>>>> origin/master
 				s.close();
 			}
 		} catch (IOException e) {
