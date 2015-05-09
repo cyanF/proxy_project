@@ -96,10 +96,12 @@ public class Proxy {
 						Socket sender = new Socket(host, port);
 						sendHTTPResponse("HTTP/1.1 200 OK\r\n", s);
 						
+						// this thread listen to the browser and forward to web site server
 						TCPTunnel tunnel = new TCPTunnel(sender,s);
 						tunnel.start();
-						// this thread listen to the browser and forward to web site server
-						copyStream(sender.getInputStream(), s.getOutputStream());
+						// the main thread listen to the server and forward to browser
+						copyStream(sender.getInputStream(), s.getOutputStream(), "inseide connect");
+						s.shutdownInput();
 						System.out.println("finished");
 						try {
 							tunnel.join();
@@ -115,14 +117,14 @@ public class Proxy {
 					}
 					
 					
-				}else{ // else
+				}else{ // if the request type is not "CONNECT"
 					Socket sender = new Socket(host, port);
 					// send request to web site
 					PrintWriter s_out = new PrintWriter(sender.getOutputStream(), true);
 					s_out.println(request);
 					
 					// read the reply from the web site and forward it to the browser
-					copyStream(sender.getInputStream(), s.getOutputStream());
+					copyStream(sender.getInputStream(), s.getOutputStream(), "inside not connect");
 					
 					// close the socket
 					sender.close();
@@ -134,7 +136,7 @@ public class Proxy {
 			}
 		}
 		
-		public static void copyStream(InputStream input, OutputStream output){
+		public static void copyStream(InputStream input, OutputStream output, String where){
 			byte[] buffer = new byte[1024];
 			int bytesRead;
 			try {
@@ -144,6 +146,7 @@ public class Proxy {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				System.out.println("Error when copying stream...");
+				System.out.println("where: " + where);
 				e.printStackTrace();
 			}
 		}
@@ -186,13 +189,15 @@ public class Proxy {
 		
 		public void run(){
 			try {
-				RequestProcessor.copyStream(recevier.getInputStream(), sender.getOutputStream());
+				RequestProcessor.copyStream(recevier.getInputStream(), sender.getOutputStream(),"thread");
+				sender.shutdownInput();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				System.out.println("TCPTunnel Error");
 			}
 			System.out.println("thread finished");
+			
 		}
 	}
 	
