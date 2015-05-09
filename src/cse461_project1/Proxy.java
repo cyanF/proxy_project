@@ -1,29 +1,23 @@
 package cse461_project1;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Proxy {
-	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-//		if (args.length != 1) {
-//	    	System.err.println("Usage: java Proxy <port_num>");
-//	        System.exit(1);
-//	    }
-//	
-//		int port = Integer.valueOf(args[0]).intValue(); 
-//		
-		int port = 2012;
+		if (args.length != 1) {
+	    	System.err.println("Usage: java Proxy <port_num>");
+	        System.exit(1);
+	    }
+	
+		int port = Integer.valueOf(args[0]).intValue(); 
+		
 		ServerSocket serverSocket;
 		try {
 			serverSocket = new ServerSocket(port);
@@ -85,13 +79,14 @@ public class Proxy {
 						host = parts[0];
 					}else if(lineWithoutSpace.startsWith("connection:")){
 						request += line.replace("keep-alive", "close") + "\r\n";
+					}else if(lineWithoutSpace.startsWith("proxy-connection:")){
+						request += line.replace("keep-alive", "close") + "\r\n";
 					}else{
 						request += line + "\r\n";
 					}
 				}
 				
 				if(requestType.equals("CONNECT")){ // connect
-					System.out.println("host: " + host + " port: "+port);
 					try{
 						Socket sender = new Socket(host, port);
 						sendHTTPResponse("HTTP/1.1 200 OK\r\n", s);
@@ -100,9 +95,8 @@ public class Proxy {
 						TCPTunnel tunnel = new TCPTunnel(sender,s);
 						tunnel.start();
 						// the main thread listen to the server and forward to browser
-						copyStream(sender.getInputStream(), s.getOutputStream(), "inseide connect");
+						copyStream(sender.getInputStream(), s.getOutputStream());
 						s.shutdownInput();
-						System.out.println("finished");
 						try {
 							tunnel.join();
 						} catch (InterruptedException e) {
@@ -121,10 +115,9 @@ public class Proxy {
 					Socket sender = new Socket(host, port);
 					// send request to web site
 					PrintWriter s_out = new PrintWriter(sender.getOutputStream(), true);
-					s_out.println(request);
-					
+					s_out.println(request + "\r\n");
 					// read the reply from the web site and forward it to the browser
-					copyStream(sender.getInputStream(), s.getOutputStream(), "inside not connect");
+					copyStream(sender.getInputStream(), s.getOutputStream());
 					
 					// close the socket
 					sender.close();
@@ -136,7 +129,7 @@ public class Proxy {
 			}
 		}
 		
-		public static void copyStream(InputStream input, OutputStream output, String where){
+		public static void copyStream(InputStream input, OutputStream output){
 			byte[] buffer = new byte[1024];
 			int bytesRead;
 			try {
@@ -145,8 +138,7 @@ public class Proxy {
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				System.out.println("Error when copying stream...");
-				System.out.println("where: " + where);
+				System.out.println("Error when copying stream");
 				e.printStackTrace();
 			}
 		}
@@ -189,15 +181,13 @@ public class Proxy {
 		
 		public void run(){
 			try {
-				RequestProcessor.copyStream(recevier.getInputStream(), sender.getOutputStream(),"thread");
+				RequestProcessor.copyStream(recevier.getInputStream(), sender.getOutputStream());
 				sender.shutdownInput();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				System.out.println("TCPTunnel Error");
 			}
-			System.out.println("thread finished");
-			
 		}
 	}
 	
