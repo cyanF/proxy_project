@@ -53,6 +53,7 @@ public class Proxy {
 				String request = "";
 				String firstLine = "";
 				while((line = br.readLine()) != null && !line.equals("")){
+					//System.out.println(line);
 					lineCount++;
 					String lineWithoutSpace = line.replace(" ", "").toLowerCase();
 					//System.out.println(line);
@@ -86,6 +87,9 @@ public class Proxy {
 					}
 				}
 				
+				if (host == "")	// if host is not found, returns
+					return;
+				
 				if(requestType.equals("CONNECT")){ // connect
 					try{
 						Socket sender = new Socket(host, port);
@@ -96,7 +100,7 @@ public class Proxy {
 						tunnel.start();
 						// the main thread listen to the server and forward to browser
 						copyStream(sender.getInputStream(), s.getOutputStream());
-						s.shutdownInput();
+						sender.shutdownInput();
 						try {
 							tunnel.join();
 						} catch (InterruptedException e) {
@@ -112,6 +116,7 @@ public class Proxy {
 					
 					
 				}else{ // if the request type is not "CONNECT"
+					// System.out.println(host + " " + port);
 					Socket sender = new Socket(host, port);
 					// send request to web site
 					PrintWriter s_out = new PrintWriter(sender.getOutputStream(), true);
@@ -123,14 +128,16 @@ public class Proxy {
 					sender.close();
 					s.close();
 				}
+				
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
+				e1.printStackTrace();
 				System.out.println("Error in socket");
 			}
 		}
 		
 		public static void copyStream(InputStream input, OutputStream output){
-			byte[] buffer = new byte[1024];
+			byte[] buffer = new byte[32767];
 			int bytesRead;
 			try {
 				while ((bytesRead = input.read(buffer)) != -1){
@@ -182,7 +189,7 @@ public class Proxy {
 		public void run(){
 			try {
 				RequestProcessor.copyStream(recevier.getInputStream(), sender.getOutputStream());
-				sender.shutdownInput();
+				recevier.shutdownInput();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
