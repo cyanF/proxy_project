@@ -29,7 +29,7 @@ public class Proxy {
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 		} 
 	}
 	
@@ -53,12 +53,12 @@ public class Proxy {
 				String request = "";
 				String firstLine = "";
 				while((line = br.readLine()) != null && !line.equals("")){
-					//System.out.println(line);
 					lineCount++;
 					String lineWithoutSpace = line.replace(" ", "").toLowerCase();
 					//System.out.println(line);
 					if(lineCount == 1) {
 						firstLine = line;
+						line = changeURL(line);
 						request += line.replace("HTTP/1.1", "HTTP/1.0") + "\r\n";
 						System.out.println(">>> " + line);
 						requestType = line.split(" ")[0];
@@ -84,6 +84,7 @@ public class Proxy {
 						request += line.replace("keep-alive", "close") + "\r\n";
 					}else{
 						request += line + "\r\n";
+					
 					}
 				}
 				
@@ -100,12 +101,11 @@ public class Proxy {
 						tunnel.start();
 						// the main thread listen to the server and forward to browser
 						copyStream(sender.getInputStream(), s.getOutputStream());
-						sender.shutdownInput();
+						s.shutdownInput();
 						try {
 							tunnel.join();
 						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							System.out.println(e.getMessage());
 						}
 						sender.close();
 						s.close();
@@ -131,13 +131,12 @@ public class Proxy {
 				
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
-				System.out.println("Error in socket");
+				System.out.println(e1.getMessage());
 			}
 		}
 		
 		public static void copyStream(InputStream input, OutputStream output){
-			byte[] buffer = new byte[32767];
+			byte[] buffer = new byte[1024];
 			int bytesRead;
 			try {
 				while ((bytesRead = input.read(buffer)) != -1){
@@ -145,8 +144,7 @@ public class Proxy {
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				System.out.println("Error when copying stream");
-				e.printStackTrace();
+				System.out.println(e.getMessage());
 			}
 		}
 		
@@ -157,8 +155,21 @@ public class Proxy {
 				s_out.println(response);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				System.out.println("Error when sending response");
+				System.out.println(e.getMessage());
 			}
+		}
+		
+		private static String changeURL(String firstLine){
+			String[] parts = firstLine.split(" ");
+			if(parts.length >= 3 && parts[0].toLowerCase().equals("get")){
+				String url = "";
+				String[] address = parts[1].split("/");
+				for(int i = 3; i < address.length; i++){
+					url += address[i];
+				}
+				return parts[0] + " /" + url + " " + parts[2];
+			}
+			return firstLine;
 		}
 		
 		private static int getPortFromURL(String line){
@@ -179,23 +190,21 @@ public class Proxy {
 	}
 	static class TCPTunnel extends Thread{
 		Socket sender = null;
-		Socket recevier = null;
+		Socket receiver = null;
 	
-		public TCPTunnel(Socket sender, Socket recevier){
+		public TCPTunnel(Socket sender, Socket receiver){
 			this.sender = sender;
-			this.recevier = recevier;
+			this.receiver = receiver;
 		}
 		
 		public void run(){
 			try {
-				RequestProcessor.copyStream(recevier.getInputStream(), sender.getOutputStream());
-				recevier.shutdownInput();
+				RequestProcessor.copyStream(receiver.getInputStream(), sender.getOutputStream());
+				sender.shutdownInput();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-				System.out.println("TCPTunnel Error");
+				System.out.println(e.getMessage());
 			}
 		}
 	}
-	
 }
